@@ -46,7 +46,7 @@ function App() {
     type: "success",
   });
   const [buttonDisabled, setButtonDisabled] = useState(false); // State for disabling button
-  const [timer, setTimer] = useState(null); // For storing timer
+  const [countdown, setCountdown] = useState(20); // Countdown state
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -92,13 +92,22 @@ function App() {
     const prompt = generatePrompt(values);
     console.log("Generated Prompt:", prompt);
 
+    form.reset(); // Reset form values
+
     setButtonDisabled(true);
-    setTimer(
-      setTimeout(() => {
-        setButtonDisabled(false); // Re-enable button after 20 seconds
-      }, 20000)
-    );
-    console.log(process.env.REACT_APP_TOKEN);
+
+    // Start countdown timer
+    const timerInterval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerInterval);
+          setButtonDisabled(false); // Re-enable button after countdown
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
 
     try {
       const response = await axios.post(
@@ -305,12 +314,16 @@ function App() {
               </div>
             </div>
 
-            <button type="submit" disabled={buttonDisabled || loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Generate Avatar"}
+            <button type="submit" disabled={buttonDisabled || loading} className="bg-blue-500 text-white px-4 py-2 rounded flex justify-center items-center">
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : !imageUrl ? "Generate Avatar":"Regenerate Avatar"}
+
             </button>
+            {countdown > 0 && (
+             <span className="ml-4 text-lg">{countdown} seconds left</span>
+            )}
           </form>
 
-          {imageUrl && !loading && (
+          {imageUrl &&  (
             <div className="mt-8 text-center">
               <h2 className="text-xl font-semibold mb-4">Generated Avatar</h2>
               <div className="inline-block relative rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl">
@@ -322,11 +335,18 @@ function App() {
               </div>
             </div>
           )}
+          
         </div>
       </div>
       {toast.show && (
-        <div className={`toast ${toast.type}`}>{toast.message}</div>
-      )}
+            <div
+              className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg ${
+                toast.type === "success" ? "bg-green-500" : "bg-red-500"
+              } text-white`}
+            >
+              {toast.message}
+            </div>
+          )}
     </div>
   );
 }
