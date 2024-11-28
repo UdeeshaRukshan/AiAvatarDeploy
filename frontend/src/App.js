@@ -46,7 +46,7 @@ function App() {
     type: "success",
   });
   const [buttonDisabled, setButtonDisabled] = useState(false); // State for disabling button
-  const [countdown, setCountdown] = useState(20); // Countdown state
+  const [countdown, setCountdown] = useState(30); // Countdown state
 
   const form = useForm({
     resolver: zodResolver(formSchema),
